@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIY Alarmo Keypad Project Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony Neutrals -->
+    <!-- Application Structure Plan: The SPA is redesigned as a single-page project guide for the DIY Alarmo Keypad. It uses a vertical layout with a fixed navigation header for easy access to key sections: Hardware, Shopping List, Wiring, Setup, Code, and Usage. This structure provides a linear, step-by-step user flow that mirrors the process of building the physical device, making the guide intuitive and easy to follow. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Hardware List. Goal: Inform. Viz/Method: Grid of styled cards (HTML/Tailwind). Interaction: Hover effects. Justification: More visually appealing than a simple list.
+        - Report Info: Shopping List. Goal: Utility. Viz/Method: A list of links to Amazon searches. Interaction: Click to open new tab. Justification: Provides direct path for users to acquire parts.
+        - Report Info: Wiring Diagrams. Goal: Inform. Viz/Method: Styled HTML tables. Justification: Clearly presents structured connection data without needing images.
+        - Report Info: Arduino Code. Goal: Inform/Utility. Viz/Method: A styled <pre><code> block. Interaction: Copy-to-clipboard button. Justification: Improves usability by allowing easy code transfer. Library/Method: Vanilla JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F4;
+            color: #404040;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #0d9488;
+            border-bottom-color: #0d9488;
+        }
+        .section-target {
+            scroll-margin-top: 80px;
+        }
+        .code-block {
+            background-color: #282c34;
+            color: #abb2bf;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header id="header" class="bg-white/80 backdrop-blur-lg fixed top-0 left-0 right-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-teal-700">DIY Alarmo Keypad</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#hardware" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Hardware</a>
+                        <a href="#shopping-list" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Shopping List</a>
+                        <a href="#wiring" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Wiring</a>
+                        <a href="#setup" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Setup</a>
+                        <a href="#code" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Code</a>
+                        <a href="#usage" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Usage</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="pt-24">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <section class="text-center pb-12">
+                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl text-teal-800">Build a Physical Alarmo Keypad</h2>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">This guide provides everything you need to build a dedicated hardware keypad using an ESP32 to control your Alarmo security system in Home Assistant.</p>
+            </section>
+            
+            <section id="hardware" class="section-target py-12 md:py-16">
+                <h3 class="text-2xl font-bold text-center text-teal-800 mb-10">1. Hardware Required</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    <div class="bg-white p-6 rounded-lg shadow-md transition-transform hover:scale-105">
+                        <span class="text-4xl">📟</span>
+                        <h4 class="mt-4 text-lg font-semibold">ESP32 Dev Board</h4>
+                        <p class="mt-2 text-gray-600">The brain of the project with built-in Wi-Fi. A DOIT DEVKIT V1 or similar is perfect.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md transition-transform hover:scale-105">
+                        <span class="text-4xl">📄</span>
+                        <h4 class="mt-4 text-lg font-semibold">16x2 I2C LCD</h4>
+                        <p class="mt-2 text-gray-600">A 2-line display to show status. The I2C version is recommended for simple wiring.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md transition-transform hover:scale-105">
+                        <span class="text-4xl">🔢</span>
+                        <h4 class="mt-4 text-lg font-semibold">4x4 Matrix Keypad</h4>
+                        <p class="mt-2 text-gray-600">A standard 16-button keypad for entering your PIN and commands.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md transition-transform hover:scale-105">
+                        <span class="text-4xl">🍞</span>
+                        <h4 class="mt-4 text-lg font-semibold">Breadboard</h4>
+                        <p class="mt-2 text-gray-600">For connecting all the components together without needing to solder.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md transition-transform hover:scale-105">
+                        <span class="text-4xl">🔌</span>
+                        <h4 class="mt-4 text-lg font-semibold">Jumper Wires</h4>
+                        <p class="mt-2 text-gray-600">A set of male-to-male and male-to-female wires to make all the connections.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md transition-transform hover:scale-105">
+                        <span class="text-4xl">⚡️</span>
+                        <h4 class="mt-4 text-lg font-semibold">5V Power Supply</h4>
+                        <p class="mt-2 text-gray-600">(Optional) A standard USB charger to power the project once it's complete.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="shopping-list" class="section-target py-12 md:py-16 bg-teal-50/50 rounded-lg">
+                <h3 class="text-2xl font-bold text-center text-teal-800 mb-10">Shopping List (Links to Amazon)</h3>
+                <div class="max-w-2xl mx-auto space-y-4">
+                    <a href="https://www.amazon.com/s?k=ESP32+Development+Board" target="_blank" class="flex items-center justify-between bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:bg-teal-100/50 transition-all">
+                        <span class="font-semibold">ESP32 Development Board</span>
+                        <span class="text-teal-600 font-bold text-sm">Shop ➔</span>
+                    </a>
+                    <a href="https://www.amazon.com/s?k=16x2+I2C+LCD+Display" target="_blank" class="flex items-center justify-between bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:bg-teal-100/50 transition-all">
+                        <span class="font-semibold">16x2 I2C LCD Display</span>
+                        <span class="text-teal-600 font-bold text-sm">Shop ➔</span>
+                    </a>
+                    <a href="https://www.amazon.com/s?k=4x4+Matrix+Keypad" target="_blank" class="flex items-center justify-between bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:bg-teal-100/50 transition-all">
+                        <span class="font-semibold">4x4 Matrix Keypad</span>
+                        <span class="text-teal-600 font-bold text-sm">Shop ➔</span>
+                    </a>
+                    <a href="https://www.amazon.com/s?k=Breadboard+and+Jumper+Wires+kit" target="_blank" class="flex items-center justify-between bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:bg-teal-100/50 transition-all">
+                        <span class="font-semibold">Breadboard & Jumper Wires Kit</span>
+                        <span class="text-teal-600 font-bold text-sm">Shop ➔</span>
+                    </a>
+                    <a href="https://www.amazon.com/s?k=5V+USB+Power+Adapter" target="_blank" class="flex items-center justify-between bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:bg-teal-100/50 transition-all">
+                        <span class="font-semibold">5V USB Power Adapter</span>
+                        <span class="text-teal-600 font-bold text-sm">Shop ➔</span>
+                    </a>
+                </div>
+            </section>
+
+            <section id="wiring" class="section-target py-12 md:py-16">
+                <h3 class="text-2xl font-bold text-center text-teal-800 mb-10">2. Wiring Diagram</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h4 class="text-xl font-semibold mb-4 text-teal-700">A. ESP32 to I2C LCD Display</h4>
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-teal-50"><tr><th class="p-2 border">ESP32 Pin</th><th class="p-2 border">LCD Pin</th><th class="p-2 border">Purpose</th></tr></thead>
+                            <tbody>
+                                <tr class="border-t"><td class="p-2 border font-mono">VIN</td><td class="p-2 border font-mono">VCC</td><td class="p-2 border">5V Power</td></tr>
+                                <tr class="border-t"><td class="p-2 border font-mono">GND</td><td class="p-2 border font-mono">GND</td><td class="p-2 border">Ground</td></tr>
+                                <tr class="border-t"><td class="p-2 border font-mono">D22</td><td class="p-2 border font-mono">SDA</td><td class="p-2 border">I2C Data</td></tr>
+                                <tr class="border-t"><td class="p-2 border font-mono">D21</td><td class="p-2 border font-mono">SCL</td><td class="p-2 border">I2C Clock</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h4 class="text-xl font-semibold mb-4 text-teal-700">B. ESP32 to 4x4 Matrix Keypad</h4>
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-teal-50"><tr><th class="p-2 border">ESP32 Pin</th><th class="p-2 border">Keypad Pin</th><th class="p-2 border">Purpose</th></tr></thead>
+                            <tbody>
+                                <tr class="border-t"><td class="p-2 border font-mono">D19</td><td class="p-2 border">Pin 1</td><td class="p-2 border">Row 1</td></tr>
+                                <tr class="border-t"><td class="p-2 border font-mono">D18</td><td class="p-2 border">Pin 2</td><td class="p-2 border">Row 2</td></tr>
+                                <tr class="border-t"><td class="p-2 border font-mono">D5</td><td class="p-2 border">Pin 3</td><td class="p-2 border">Row 3</td></tr>
+                                <tr class="border-t"><td class="p-2 border font-mono">D17</td><td class="p-2 border">Pin 4</td><td class="p-2 border">Row 4</td></tr>
+                                <tr class="border-t"><td class="p-2 border font-mono">D16</td><td class="p-2 border">Pin 5</td><td class="p-2 border">Column 1</td></tr>
+                                <tr class="border-t"><td class="p-2 border font-mono">D4</td><td class="p-2 border">Pin 6</td><td class="p-2 border">Column 2</td></tr>
+                                <tr class="border-t"><td class="p-2 border font-mono">D2</td><td class="p-2 border">Pin 7</td><td class="p-2 border">Column 3</td></tr>
+                                <tr class="border-t"><td class="p-2 border font-mono">D15</td><td class="p-2 border">Pin 8</td><td class="p-2 border">Column 4</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="setup" class="section-target py-12 md:py-16">
+                <h3 class="text-2xl font-bold text-center text-teal-800 mb-10">3. Software Setup</h3>
+                <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
+                    <ol class="list-decimal list-inside space-y-6">
+                        <li>
+                            <h4 class="inline font-semibold text-lg">Install Arduino IDE</h4>
+                            <p class="ml-6 text-gray-600">If you don't have it, download and install the official <a href="https://www.arduino.cc/en/software" target="_blank" class="text-teal-600 hover:underline">Arduino IDE</a>.</p>
+                        </li>
+                        <li>
+                            <h4 class="inline font-semibold text-lg">Add ESP32 Board Support</h4>
+                            <p class="ml-6 text-gray-600">In `File > Preferences`, add `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json` to the board manager URLs. Then go to `Tools > Board > Boards Manager`, search for "esp32", and install the package by Espressif Systems.</p>
+                        </li>
+                        <li>
+                            <h4 class="inline font-semibold text-lg">Install Required Libraries</h4>
+                            <p class="ml-6 text-gray-600">Use the Library Manager (`Sketch > Include Library > Manage Libraries...`) to install the following:</p>
+                            <ul class="list-disc list-inside ml-12 mt-2 space-y-1 text-gray-700">
+                                <li><code class="bg-gray-200 px-1 rounded">Keypad</code> by Mark Stanley, Alexander Brevig</li>
+                                <li><code class="bg-gray-200 px-1 rounded">LiquidCrystal_I2C</code> by Frank de Brabander</li>
+                                <li><code class="bg-gray-200 px-1 rounded">ArduinoWebsockets</code> by Markus Sattler</li>
+                                <li><code class="bg-gray-200 px-1 rounded">Arduino_JSON</code> by Arduino</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </section>
+
+            <section id="code" class="section-target py-12 md:py-16">
+                <h3 class="text-2xl font-bold text-center text-teal-800 mb-10">4. Arduino Code</h3>
+                <div class="max-w-4xl mx-auto relative">
+                    <button id="copy-code-btn" class="absolute top-4 right-4 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold py-2 px-3 rounded-md transition-colors">Copy Code</button>
+                    <div class="code-block rounded-lg shadow-lg overflow-x-auto p-6">
+<pre id="code-content"><code>// --- LIBRARIES ---
+#include &lt;WiFi.h&gt;
+#include &lt;ArduinoWebsockets.h&gt;
+#include &lt;Arduino_JSON.h&gt;
+#include &lt;Keypad.h&gt;
+#include &lt;LiquidCrystal_I2C.h&gt;
+
+// --- CONFIGURATION ---
+const char* WIFI_SSID = "YOUR_WIFI_SSID";
+const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+const char* HA_WEBSOCKET_URL = "ws://YOUR_HA_IP:8123/api/websocket";
+const char* HA_TOKEN = "YOUR_LONG_LIVED_ACCESS_TOKEN";
+const char* ALARM_ENTITY_ID = "alarm_control_panel.alarmo";
+
+// --- HARDWARE SETUP ---
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+const byte ROWS = 4;
+const byte COLS = 4;
+char keys[ROWS][COLS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+byte rowPins[ROWS] = {19, 18, 5, 17};
+byte colPins[COLS] = {16, 4, 2, 15};
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+// ... (Full code would be here, truncated for brevity in this example)
+// The actual implementation would contain the full sketch from the source.
+// This is just a placeholder to demonstrate the layout.
+// The copy button will copy the full, correct code.
+</code></pre>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="usage" class="section-target py-12 md:py-16">
+                <h3 class="text-2xl font-bold text-center text-teal-800 mb-10">5. How to Use</h3>
+                <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
+                    <ol class="list-decimal list-inside space-y-4 text-gray-700">
+                        <li><span class="font-semibold">Power On:</span> Connect the ESP32 to a USB power source. The LCD will show the connection status.</li>
+                        <li><span class="font-semibold">Enter Code:</span> Type your PIN. The LCD will show `*` for each digit.</li>
+                        <li><span class="font-semibold">Disarm:</span> Enter your code, then press <code class="bg-gray-200 px-2 py-1 rounded-md">#</code>.</li>
+                        <li><span class="font-semibold">Arm Away:</span> Press <code class="bg-gray-200 px-2 py-1 rounded-md">A</code>. Enter code first if required.</li>
+                        <li><span class="font-semibold">Arm Home:</span> Press <code class="bg-gray-200 px-2 py-1 rounded-md">B</code>. Enter code first if required.</li>
+                        <li><span class="font-semibold">Clear:</span> Press <code class="bg-gray-200 px-2 py-1 rounded-md">*</code> or <code class="bg-gray-200 px-2 py-1 rounded-md">C</code> to clear the entered code.</li>
+                    </ol>
+                </div>
+            </section>
+
+        </div>
+    </main>
+    
+    <footer class="bg-white mt-12">
+        <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+            <p>Interactive Guide for the DIY Alarmo Keypad Project.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fullArduinoCode = `
+// --- LIBRARIES ---
+#include <WiFi.h>
+#include <ArduinoWebsockets.h>
+#include <Arduino_JSON.h>
+#include <Keypad.h>
+#include <LiquidCrystal_I2C.h>
+
+// --- CONFIGURATION ---
+const char* WIFI_SSID = "YOUR_WIFI_SSID";
+const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+const char* HA_WEBSOCKET_URL = "ws://YOUR_HA_IP_OR_URL:8123/api/websocket";
+const char* HA_TOKEN = "YOUR_LONG_LIVED_ACCESS_TOKEN";
+const char* ALARM_ENTITY_ID = "alarm_control_panel.alarmo";
+
+// --- HARDWARE SETUP ---
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+const byte ROWS = 4;
+const byte COLS = 4;
+char keys[ROWS][COLS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+byte rowPins[ROWS] = {19, 18, 5, 17};
+byte colPins[COLS] = {16, 4, 2, 15};
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+// --- GLOBAL VARIABLES ---
+using namespace websockets;
+WebsocketsClient client;
+int messageId = 1;
+bool ha_authenticated = false;
+String current_code = "";
+String alarm_state = "Connecting...";
+String last_displayed_state = "";
+
+// --- CORE FUNCTIONS ---
+
+void setup() {
+  Serial.begin(115200);
+  lcd.init();
+  lcd.backlight();
+  displayMessage("Connecting WiFi", alarm_state);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nWiFi Connected!");
+  displayMessage("WiFi Connected", WiFi.localIP().toString());
+  client.onMessage(onWebSocketMessage);
+  client.onEvent(onWebSocketEvent);
+  connectWebSocket();
+}
+
+void loop() {
+  client.poll();
+  handleKeypad();
+  if (alarm_state != last_displayed_state) {
+    displayMessage(alarm_state, "");
+    current_code = "";
+    last_displayed_state = alarm_state;
+  }
+}
+
+// --- DISPLAY MANAGEMENT ---
+
+void displayMessage(String line1, String line2) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(line1.substring(0, 16));
+  lcd.setCursor(0, 1);
+  lcd.print(line2.substring(0, 16));
+  Serial.println("Display: " + line1 + " | " + line2);
+}
+
+void updateCodeDisplay() {
+  String masked_code = "";
+  for (int i = 0; i < current_code.length(); i++) {
+    masked_code += "*";
+  }
+  displayMessage(alarm_state, masked_code);
+}
+
+
+// --- KEYPAD HANDLING ---
+
+void handleKeypad() {
+  char key = keypad.getKey();
+  if (key) {
+    Serial.print("Key pressed: ");
+    Serial.println(key);
+    if (isdigit(key)) {
+      if (current_code.length() < 8) {
+        current_code += key;
+        updateCodeDisplay();
+      }
+    } else if (key == 'C' || key == '*') {
+      current_code = "";
+      updateCodeDisplay();
+    } else if (key == '#') {
+      displayMessage(alarm_state, "Sending...");
+      callAlarmService("alarm_disarm");
+    } else if (key == 'A') {
+      displayMessage("Arming Away...", "");
+      callAlarmService("alarm_arm_away");
+    } else if (key == 'B') {
+      displayMessage("Arming Home...", "");
+      callAlarmService("alarm_arm_home");
+    }
+  }
+}
+
+// --- WEBSOCKET COMMUNICATION ---
+
+void connectWebSocket() {
+  displayMessage("Connecting HA...", "");
+  if (!client.connect(HA_WEBSOCKET_URL)) {
+    Serial.println("WebSocket Connection Failed!");
+    displayMessage("HA Connect Fail", "Retrying...");
+    delay(5000);
+    ESP.restart();
+  }
+}
+
+void onWebSocketMessage(WebsocketsMessage message) {
+  Serial.print("Got Message: ");
+  Serial.println(message.data());
+  JSONVar data = JSON.parse(message.data());
+  if (JSON.typeof(data) == "undefined") {
+    Serial.println("Parsing input failed!");
+    return;
+  }
+  String type = (const char*) data["type"];
+  if (type == "auth_required") {
+    Serial.println("Auth Required. Sending token...");
+    sendAuthentication();
+  } else if (type == "auth_ok") {
+    Serial.println("Authenticated successfully!");
+    ha_authenticated = true;
+    displayMessage("HA Connected!", "Subscribing...");
+    subscribeToStateChanges();
+    fetchInitialState();
+  } else if (type == "auth_invalid") {
+    Serial.println("Authentication Failed!");
+    ha_authenticated = false;
+    displayMessage("Auth Failed!", (const char*) data["message"]);
+  } else if (type == "result" && (int)data["id"] == messageId - 1) {
+    if(data["success"] && data["result"] != null) {
+      for(int i = 0; i < data["result"].keys().length(); i++){
+        JSONVar item = data["result"][i];
+        if(String((const char*)item["entity_id"]) == ALARM_ENTITY_ID){
+           updateAlarmState((const char*)item["state"]);
+        }
+      }
+    }
+  } else if (type == "event") {
+    String entity = (const char*) data["event"]["data"]["entity_id"];
+    if (entity == ALARM_ENTITY_ID) {
+      String newState = (const char*) data["event"]["data"]["new_state"]["state"];
+      updateAlarmState(newState);
+    }
+  }
+}
+
+void onWebSocketEvent(WebsocketsEvent event, String data) {
+  if (event == WebsocketsEvent::ConnectionError) {
+    Serial.print("Connection Error: ");
+    Serial.println(data);
+    displayMessage("HA Conn Error", "");
+  } else if (event == WebsocketsEvent::Disconnected) {
+    Serial.println("Disconnected!");
+    displayMessage("HA Disconnected", "Reconnecting...");
+    ha_authenticated = false;
+    delay(2000);
+    ESP.restart();
+  }
+}
+
+void sendMessage(String jsonMessage) {
+  if (client.available()) {
+    Serial.print("Sending: ");
+    Serial.println(jsonMessage);
+    client.send(jsonMessage);
+    messageId++;
+  }
+}
+
+void sendAuthentication() {
+  String msg = "{\\"type\\":\\"auth\\",\\"access_token\\":\\"" + String(HA_TOKEN) + "\\"}";
+  sendMessage(msg);
+}
+
+void fetchInitialState() {
+  String msg = "{\\"id\\":" + String(messageId) + ",\\"type\\":\\"get_states\\"}";
+  sendMessage(msg);
+}
+
+void subscribeToStateChanges() {
+  String msg = "{\\"id\\":" + String(messageId) + ",\\"type\\":\\"subscribe_events\\",\\"event_type\\":\\"state_changed\\"}";
+  sendMessage(msg);
+}
+
+void callAlarmService(String service) {
+  String msg = "{\\"id\\":" + String(messageId) + 
+               ",\\"type\\":\\"call_service\\"" + 
+               ",\\"domain\\":\\"alarm_control_panel\\"" +
+               ",\\"service\\":\\"" + service + "\\"" +
+               ",\\"service_data\\":{\\"entity_id\\":\\"" + ALARM_ENTITY_ID + "\\"";
+  if (current_code.length() > 0) {
+    msg += ",\\"code\\":\\"" + current_code + "\\"";
+  }
+  msg += "}}";
+  sendMessage(msg);
+  current_code = "";
+}
+
+void updateAlarmState(String state) {
+  if (state == "disarmed") alarm_state = "Disarmed";
+  else if (state == "armed_home") alarm_state = "Armed Home";
+  else if (state == "armed_away") alarm_state = "Armed Away";
+  else if (state == "arming") alarm_state = "Arming...";
+  else if (state == "pending") alarm_state = "Pending...";
+  else if (state == "triggered") alarm_state = "TRIGGERED!";
+  else alarm_state = "Unknown";
+}
+`;
+
+            const codeDisplay = document.getElementById('code-content');
+            if (codeDisplay) {
+                codeDisplay.textContent = fullArduinoCode;
+            }
+
+            const copyBtn = document.getElementById('copy-code-btn');
+            if(copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = fullArduinoCode;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempTextArea);
+                    
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy Code';
+                    }, 2000);
+                });
+            }
+
+            const sections = document.querySelectorAll('.section-target');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.toggle('active', link.getAttribute('href').slice(1) === entry.target.id);
+                        });
+                    }
+                });
+            }, { rootMargin: "-50% 0px -50% 0px" });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
